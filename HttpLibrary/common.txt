@@ -1,0 +1,27 @@
+*** Settings ***
+Resource       variables.txt
+Library        Collections
+Library        String
+Library  HttpLibrary.HTTP
+Library        OperatingSystem
+
+***Variables***
+${AUTH_TOKEN}    ''
+${AUTH_TYPE}        ''
+
+*** Keywords ***
+OAUTH BY CLIENT CREDENTIALS
+	Create Http Context  ${HOST}:${AUTH_PORT}  ${SCHEMA}
+
+	Set Basic Auth   ${APP_ID_CREDENTIALS}  ${APP_SECRET_CREDENTIALS}
+	Set Request Header  Content-Type  application/x-www-form-urlencoded
+    Set Request Body    grant_type=client_credentials
+	
+	POST  /oauth/token
+    
+    ${get_status}  Get Response Status
+	${get_body}  Get Response Body
+	Should Start With  ${get_status}  200
+	${json}=  Parse Json  ${get_body}
+	Set Suite Variable  ${AUTH_TOKEN}  ${ json['access_token']}
+	Set Suite Variable  ${AUTH_TYPE}  ${json['token_type']}
